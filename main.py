@@ -1,22 +1,27 @@
+import os
 import argparse
-import json
+import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any
 from models.gemma_model import GemmaModel
 from models.phi4_model import Phi4Model
 from models.aya_model import AyaModel
+from tqdm import tqdm
+from utils import load_image_and_encode
 
 app = FastAPI()
 
 model_registry = None  # Only one model can be registered at a time
 
+
 class PredictionRequest(BaseModel):
     image: str
     prompt: str
 
+
 class ModelRegistration(BaseModel):
     model_name: str
+
 
 # FastAPI endpoint for prediction
 @app.post("/predict")
@@ -41,6 +46,7 @@ async def predict(request: PredictionRequest):
 
     return {"result": result}
 
+
 # FastAPI endpoint for registering a model
 @app.post("/register")
 async def register_model(request: ModelRegistration):
@@ -57,23 +63,92 @@ async def register_model(request: ModelRegistration):
 
     return {"status": "model registered"}
 
-def run_offline(input_path: str, output_path: str):
-    # TODO: Implement offline mode
-    raise NotImplementedError("Offline mode is not implemented")
+
+def run_offline(model_name: str, language: str, split: str, dataset_path: str):
+    model = None
+    if model_name == "gemma":
+        model = GemmaModel()
+    elif model_name == "phi4":
+        model = Phi4Model()
+    elif model_name == "aya":
+        model = AyaModel()
+    else:
+        raise ValueError("Invalid model name")
+
+    df = pd.read_csv(
+        os.path.join(dataset_path, f"dataset_{language.upper()}_{split}.csv")
+    )
+
+    # TODO: make it by batch, now it's just one by one
+    for index, row in tqdm(df.iterrows(), total=len(df)):
+        try:
+            image_path = row["image_url"]
+            encoded_image = load_image_and_encode(image_path)
+            response = model.generate((encoded_image, row["question"]))
+            df.loc[index, "predicted_answer"] = response
+
+            # Use the same approach for the English question
+            response_en = model.generate((encoded_image, row["question_en"]))
+            df.loc[index, "predicted_answer_en"] = response_en
+            df.loc[index, "model"] = model_name
+            df.loc[index, "system_prompt"] = model.system_prompt
+        except Exception as e:
+            print(f"Error processing row {index}: {e}")
+            df.loc[index, "predicted_answer"] = f"ERROR: {str(e)}"
+            df.loc[index, "predicted_answer_en"] = f"ERROR: {str(e)}"
+            df.loc[index, "model"] = model_name
+            df.loc[index, "system_prompt"] = model.system_prompt
+            continue
+
+    # Save results even if some rows had errors
+    output_path = os.path.join(os.path.dirname(dataset_path), "predictions")
+    os.makedirs(output_path, exist_ok=True)
+    df.to_csv(
+        os.path.join(
+            output_path,
+            f"dataset_{language.upper()}_{split}_{model_name}_predicted.csv",
+        ),
+        index=False,
+    )
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the application in FastAPI or offline mode.")
-    parser.add_argument("--mode", choices=["fastapi", "offline"], required=True, help="Mode to run the application")
-    parser.add_argument("--input", type=str, help="Input JSON file path for offline mode")
-    parser.add_argument("--output", type=str, help="Output JSON file path for offline mode")
+    parser = argparse.ArgumentParser(
+        description="Run the application in FastAPI or offline mode."
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["fastapi", "offline"],
+        required=True,
+        help="Mode to run the application",
+    )
+    parser.add_argument(
+        "--dataset_path", type=str, required=True, help="Path to the dataset"
+    )
+    parser.add_argument(
+        "--language",
+        choices=["CS", "SK", "UK"],
+        required=True,
+        help="Dataset language part",
+    )
+    parser.add_argument(
+        "--split",
+        choices=["dev", "test"],
+        required=True,
+        help="Dataset split to run the prediction",
+    )
+    parser.add_argument(
+        "--model",
+        choices=["gemma", "phi4", "aya"],
+        required=True,
+        help="Model to run the prediction",
+    )
 
     args = parser.parse_args()
 
     if args.mode == "fastapi":
         import uvicorn
+
         uvicorn.run(app, host="0.0.0.0", port=8000)
     elif args.mode == "offline":
-        if not args.input or not args.output:
-            print("Input and output paths are required in offline mode.")
-        else:
-            run_offline(args.input, args.output)
+        run_offline(args.model, args.language, args.split, args.dataset_path)
