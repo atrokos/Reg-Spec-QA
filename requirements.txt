@@ -133,3 +133,5 @@ xformers==0.0.29.post2
 xgrammar==0.1.16
 yarl==1.18.3
 zipp==3.21.0
+
+pandas
