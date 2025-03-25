@@ -1,7 +1,7 @@
 .venv/
 **/.DS_Store
 **/__pycache__/*
-
+.env
 
 data/processed_dataset/*
 data/raw_dataset/*

@@ -1,14 +1,21 @@
 from abc import ABC, abstractmethod
 import torch
-from transformers import AutoProcessor, AutoModelForImageTextToText
+from transformers import (
+    AutoProcessor,
+    AutoModelForImageTextToText,
+    AutoModelForCausalLM,
+)
+
 
 class BaseModel(ABC):
-    @abstractmethod
-    def load(self, model_id: str) -> tuple[AutoProcessor, AutoModelForImageTextToText]:
-        pass
 
     @abstractmethod
-    def generate(self, input_batch: list[tuple[str, str]]) -> list[str]:
+    def load(self, model_id: str) -> None:
+        self.model: AutoModelForImageTextToText | AutoModelForCausalLM
+        self.processor: AutoProcessor
+
+    @abstractmethod
+    def generate(self, input_batch: tuple[str, str]) -> str:
         pass
 
     def unload(self) -> None:
