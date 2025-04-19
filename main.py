@@ -5,8 +5,12 @@ from models.gemma_model import GemmaModel
 from models.phi4_model import Phi4Model
 from models.aya_model import AyaModel
 from utils import load_image_and_encode
+from data.process import download_and_extract_dataset, RAW_DATASET_DIR
 
-def run_offline(model_name: str, language: str, split: str, dataset_path: str, batch_size: int = 32):
+def run_offline(model_name: str, language: str, split: str, batch_size: int = 32):
+    # Download and extract the dataset
+    download_and_extract_dataset()
+
     model = None
     if model_name == "gemma":
         model = GemmaModel()
@@ -17,9 +21,10 @@ def run_offline(model_name: str, language: str, split: str, dataset_path: str, b
     else:
         raise ValueError("Invalid model name")
 
-    df = pd.read_csv(
-        os.path.join(dataset_path, f"dataset_{language.upper()}_{split}.csv")
+    dataset_path = os.path.join(
+        RAW_DATASET_DIR, "regional_vqa_data", f"dataset_{language.upper()}_{split}.csv"
     )
+    df = pd.read_csv(dataset_path)
 
     # Process the dataset in batches
     for start_idx in range(0, len(df), batch_size):
@@ -46,7 +51,7 @@ def run_offline(model_name: str, language: str, split: str, dataset_path: str, b
             continue
 
     # Save results even if some rows had errors
-    output_path = os.path.join(os.path.dirname(dataset_path), "predictions")
+    output_path = os.path.join(os.path.dirname(RAW_DATASET_DIR), "predictions")
     os.makedirs(output_path, exist_ok=True)
     df.to_csv(
         os.path.join(
@@ -66,9 +71,6 @@ if __name__ == "__main__":
         choices=["offline"],
         required=True,
         help="Mode to run the application",
-    )
-    parser.add_argument(
-        "--dataset_path", type=str, required=True, help="Path to the dataset"
     )
     parser.add_argument(
         "--language",
@@ -92,4 +94,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.mode == "offline":
-        run_offline(args.model, args.language, args.split, args.dataset_path)
+        run_offline(args.model, args.language, args.split)
