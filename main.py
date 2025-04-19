@@ -7,6 +7,7 @@ from models.aya_model import AyaModel
 from utils import load_image_and_encode
 from data.process import download_and_extract_dataset, RAW_DATASET_DIR
 
+
 def run_offline(model_name: str, language: str, split: str, batch_size: int = 32):
     # Download and extract the dataset
     download_and_extract_dataset()
@@ -28,26 +29,46 @@ def run_offline(model_name: str, language: str, split: str, batch_size: int = 32
 
     # Process the dataset in batches
     for start_idx in range(0, len(df), batch_size):
-        batch = df.iloc[start_idx:start_idx + batch_size]
+        batch = df.iloc[start_idx : start_idx + batch_size]
         try:
             image_paths = batch["image_url"].tolist()
-            encoded_images = [load_image_and_encode(image_path) for image_path in image_paths]
+            encoded_images = [
+                load_image_and_encode(image_path) for image_path in image_paths
+            ]
             questions = batch["question"].tolist()
             questions_en = batch["question_en"].tolist()
 
-            responses = [model.generate((encoded_image, question)) for encoded_image, question in zip(encoded_images, questions)]
-            responses_en = [model.generate((encoded_image, question_en)) for encoded_image, question_en in zip(encoded_images, questions_en)]
+            responses = [
+                model.generate((encoded_image, question))
+                for encoded_image, question in zip(encoded_images, questions)
+            ]
+            responses_en = [
+                model.generate((encoded_image, question_en))
+                for encoded_image, question_en in zip(encoded_images, questions_en)
+            ]
 
-            df.loc[start_idx:start_idx + batch_size - 1, "predicted_answer"] = responses
-            df.loc[start_idx:start_idx + batch_size - 1, "predicted_answer_en"] = responses_en
-            df.loc[start_idx:start_idx + batch_size - 1, "model"] = model_name
-            df.loc[start_idx:start_idx + batch_size - 1, "system_prompt"] = model.system_prompt
+            df.loc[start_idx : start_idx + batch_size - 1, "predicted_answer"] = (
+                responses
+            )
+            df.loc[start_idx : start_idx + batch_size - 1, "predicted_answer_en"] = (
+                responses_en
+            )
+            df.loc[start_idx : start_idx + batch_size - 1, "model"] = model_name
+            df.loc[start_idx : start_idx + batch_size - 1, "system_prompt"] = (
+                model.system_prompt
+            )
         except Exception as e:
             print(f"Error processing batch starting at index {start_idx}: {e}")
-            df.loc[start_idx:start_idx + batch_size - 1, "predicted_answer"] = f"ERROR: {str(e)}"
-            df.loc[start_idx:start_idx + batch_size - 1, "predicted_answer_en"] = f"ERROR: {str(e)}"
-            df.loc[start_idx:start_idx + batch_size - 1, "model"] = model_name
-            df.loc[start_idx:start_idx + batch_size - 1, "system_prompt"] = model.system_prompt
+            df.loc[start_idx : start_idx + batch_size - 1, "predicted_answer"] = (
+                f"ERROR: {str(e)}"
+            )
+            df.loc[start_idx : start_idx + batch_size - 1, "predicted_answer_en"] = (
+                f"ERROR: {str(e)}"
+            )
+            df.loc[start_idx : start_idx + batch_size - 1, "model"] = model_name
+            df.loc[start_idx : start_idx + batch_size - 1, "system_prompt"] = (
+                model.system_prompt
+            )
             continue
 
     # Save results even if some rows had errors
@@ -63,9 +84,7 @@ def run_offline(model_name: str, language: str, split: str, batch_size: int = 32
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run the application in offline mode."
-    )
+    parser = argparse.ArgumentParser(description="Run the application in offline mode.")
     parser.add_argument(
         "--mode",
         choices=["offline"],
