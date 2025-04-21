@@ -4,8 +4,9 @@
 #PBS -l walltime=2:00:00
 
 # Define the DATADIR variable: directory where the input files are located and where the output will be saved
-# TODO: Change this to your own directory
-DATADIR=/storage/
+!!!
+DATADIR=/storage/Change this to your own directory
+!!!
 
 # Append job information to a log file
 echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $DATADIR/jobs_info.txt
@@ -32,7 +33,6 @@ pip install -r requirements.txt || { echo >&2 "Failed to install dependencies!";
 # Run the Python script with the aya model on the dev split
 python3 main.py \
     --mode offline \
-    --dataset_path $SCRATCHDIR/dataset \
     --language CS \
     --split dev \
     --model aya || { echo >&2 "Python script execution failed (with a code $?) !!"; exit 4; }
