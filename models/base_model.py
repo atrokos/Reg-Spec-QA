@@ -15,7 +15,11 @@ class BaseModel(ABC):
         self.processor: AutoProcessor
 
     @abstractmethod
-    def generate(self, input_batch: tuple[str, str]) -> str:
+    def generate(self, input_tuple: tuple[str, str]) -> str:
+        pass
+
+    @abstractmethod
+    def generate_batch(self, input_batch: list[tuple[str, str]]) -> list[str]:
         pass
 
     def unload(self) -> None:
