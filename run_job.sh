@@ -37,6 +37,7 @@ cp -r $DATADIR/. $SCRATCHDIR || { echo >&2 "Error while copying the codebase!"; 
 # Move into the scratch directory
 cd $SCRATCHDIR
 
+
 # Create a virtual environment in the scratch directory
 python3 -m venv venv || { echo >&2 "Failed to create virtual environment!"; exit 3; }
 
@@ -59,7 +60,7 @@ python3 main.py \
     || { echo >&2 "Python script execution failed (with a code $?) !!"; exit 4; }
 
 # Copy the results back to the DATADIR
-cp -r $SCRATCHDIR/predictions $DATADIR || { echo >&2 "Result file(s) copying failed (with a code $?) !!"; exit 5; }
+cp -r $SCRATCHDIR/data/predictions $DATADIR || { echo >&2 "Result file(s) copying failed (with a code $?) !!"; exit 5; }
 
 # Clean the SCRATCH directory
 clean_scratch
