@@ -1,1 +1,0 @@
-python main.py --mode offline --model gemma --language CS --split dev --dataset_path data/processed_dataset
