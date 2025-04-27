@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N aya_dev_job
+#PBS -N llm_reg_spec_qa
 #PBS -l select=1:ncpus=1:mem=16gb:ngpus=1:gpu_mem=24gb:scratch_local=50gb
 #PBS -l walltime=1:00:00
 
