@@ -32,6 +32,8 @@ import os
 import urllib.request
 import tarfile
 import pandas as pd
+import requests
+from tqdm import tqdm
 
 RAW_DATASET_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "raw_dataset"
@@ -63,6 +65,36 @@ def load_file(filepath: str) -> list[str]:
     return lines
 
 
+def download_images(image_url_file: str, lang: str, image_base_dir: str = "data/images") -> list[str]:
+    """Downloads all images from given file. Returns list of image paths."""
+    image_urls = load_file(image_url_file)
+    image_paths = []
+    headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                            "AppleWebKit/537.36 (KHTML, like Gecko) "
+                            "Chrome/117.0.0.0 Safari/537.36"
+    }
+    image_base_dir = f"{image_base_dir}_{lang}"
+    os.makedirs(image_base_dir, exist_ok=True)
+    for url in tqdm(image_urls, desc="Downloading images", unit="image", total=len(image_urls)):
+        filename = os.path.basename(url)
+        image_path = os.path.join(image_base_dir, filename)
+        if not os.path.exists(image_path):
+            try:
+                response = requests.get(f"https:{url}", headers=headers, stream=True)
+                response.raise_for_status()
+                with open(image_path, "wb") as img_file:
+                    img_file.write(response.content)
+                # TODO: appending relative path?
+                image_paths.append(image_path)
+            except requests.exceptions.RequestException as e:
+                tqdm.write(f"Error downloading {url}: {e}")
+                image_paths.append(None)
+        else:
+            tqdm.write(f"Image {filename} already exists. Skipping download.")
+            image_paths.append(image_path)
+    return image_paths
+
 def process_language(lang: str) -> pd.DataFrame:
     question_file = os.path.join(
         RAW_DATASET_DIR,
@@ -93,7 +125,7 @@ def process_language(lang: str) -> pd.DataFrame:
     questions = load_file(question_file)
     questions_en = load_file(question_en_file)
     answers = load_file(answer_file)
-    image_urls = load_file(image_url_file)
+    image_urls = download_images(image_url_file, lang)
     splits = load_file(split_file)
 
     # Check consistency: all files must have the same number of lines (n examples)
@@ -106,7 +138,7 @@ def process_language(lang: str) -> pd.DataFrame:
         "question": questions,
         "question_en": questions_en,
         "answer": answers,
-        "image_url": [f"https:{iurl}" for iurl in image_urls],
+        "image_url": image_urls,
         "split_type": splits,
     }
 
