@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N aya_dev_job
-#PBS -l select=1:ncpus=1:mem=16gb:ngpus=1:gpu_mem=24gb:scratch_local=20gb
-#PBS -l walltime=2:00:00
+#PBS -l select=1:ncpus=1:mem=16gb:ngpus=1:gpu_mem=24gb:scratch_local=50gb
+#PBS -l walltime=1:00:00
 
 # Define the DATADIR variable: directory where the input files are located and where the output will be saved
 !!!
