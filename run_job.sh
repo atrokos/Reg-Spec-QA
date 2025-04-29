@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N llm_reg_spec_qa
-#PBS -l select=1:ncpus=1:mem=16gb:ngpus=1:gpu_mem=24gb:scratch_local=50gb
-#PBS -l walltime=1:00:00
+#PBS -l select=1:ncpus=1:mem=64gb:ngpus=1:gpu_mem=40gb:scratch_local=60gb
+#PBS -l walltime=2:00:00
 
 # Read arguments from environment variables or use defaults
 DATADIR=${DATADIR:-}  # Default to current working directory if not provided
@@ -36,7 +36,6 @@ cp -r $DATADIR/. $SCRATCHDIR || { echo >&2 "Error while copying the codebase!"; 
 
 # Move into the scratch directory
 cd $SCRATCHDIR
-
 
 # Create a virtual environment in the scratch directory
 python3 -m venv venv || { echo >&2 "Failed to create virtual environment!"; exit 3; }

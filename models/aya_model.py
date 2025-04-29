@@ -2,7 +2,7 @@ from transformers import AutoProcessor, AutoModelForImageTextToText
 import torch
 from typing import Literal
 from models.base_model import BaseModel
-from models.prompt import DEFAULT_AYA_SYSTEM_PROMPT
+from models.prompt import DEFAULT_AYA_SYSTEM_PROMPT, GEMMA_SYSTEM_PROMPT
 import requests
 from PIL import Image
 from io import BytesIO
@@ -12,7 +12,7 @@ class AyaModel(BaseModel):
         super().__init__()
         self.model_id = f"CohereForAI/aya-vision-{size}"
         self.system_prompt = (
-            system_prompt if system_prompt else DEFAULT_AYA_SYSTEM_PROMPT
+            system_prompt if system_prompt else GEMMA_SYSTEM_PROMPT
         )
         language = "Czech" if lang_flag == "CS" else "English" if lang_flag == "EN" else "Ukrainian" if lang_flag == "UK" else "Unknown"
         self.system_prompt = self.system_prompt.replace("{{language}}", language)
@@ -60,9 +60,9 @@ class AyaModel(BaseModel):
 
         gen_tokens = self.model.generate(
             **inputs,
-            max_new_tokens=100,
+            max_new_tokens=2000,
             do_sample=True,
-            temperature=0.001,
+            temperature=0.7,
         )
 
         decoded = self.processor.tokenizer.decode(
