@@ -30,6 +30,7 @@ Each line in the files corresponds to one example.
 
 import os
 import urllib.request
+import urllib.parse
 import tarfile
 import pandas as pd
 import requests
@@ -78,6 +79,7 @@ def download_images(image_url_file: str, lang: str, image_base_dir: str = "data/
     os.makedirs(image_base_dir, exist_ok=True)
     for url in tqdm(image_urls, desc="Downloading images", unit="image", total=len(image_urls)):
         filename = os.path.basename(url)
+        filename = urllib.parse.unquote(filename)
         image_path = os.path.join(image_base_dir, filename)
         if not os.path.exists(image_path):
             try:
@@ -85,14 +87,13 @@ def download_images(image_url_file: str, lang: str, image_base_dir: str = "data/
                 response.raise_for_status()
                 with open(image_path, "wb") as img_file:
                     img_file.write(response.content)
-                # TODO: appending relative path?
-                image_paths.append(image_path)
+                image_paths.append(os.path.abspath(image_path))
             except requests.exceptions.RequestException as e:
                 tqdm.write(f"Error downloading {url}: {e}")
                 image_paths.append(None)
         else:
             tqdm.write(f"Image {filename} already exists. Skipping download.")
-            image_paths.append(image_path)
+            image_paths.append(os.path.abspath(image_path))
     return image_paths
 
 def process_language(lang: str) -> pd.DataFrame:
