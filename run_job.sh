@@ -48,7 +48,7 @@ source venv/bin/activate || { echo >&2 "Failed to activate virtual environment!"
 pip install --no-cache -r requirements.txt || { echo >&2 "Failed to install dependencies!"; exit 3; }
 
 # Process the dataset
-python3 data/process.py
+python3 data/process.py --lang $LANGUAGE
 
 # Run the Python script with the aya model on the specified split
 python3 main.py \

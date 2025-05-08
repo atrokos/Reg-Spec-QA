@@ -13,7 +13,6 @@ from utils import load_image_and_encode
 model_registry = None  # Only one model can be registered at a time
 
 
-
 def run_offline(model_name: str, language: str, split: str, dataset_path: str, batch_size: int = 1):
     print(f"Initializing {model_name} model...")
     model = None
@@ -27,13 +26,13 @@ def run_offline(model_name: str, language: str, split: str, dataset_path: str, b
         raise ValueError("Invalid model name")
 
     print(f"Loading dataset for {language} {split} split...")
-    df = pd.read_csv(
-        os.path.join(dataset_path, f"dataset_{language.upper()}_{split}.csv")
-    )
+    df = pd.read_csv(os.path.join(dataset_path, f"dataset_{language.upper()}_{split}.csv"))
     print(f"Loaded {len(df)} examples")
 
     if batch_size > 1:
-        warnings.warn('Batch processing is not working well and does not save much time, using one by one processing instead')
+        warnings.warn(
+            "Batch processing is not working well and does not save much time, using one by one processing instead"
+        )
         batch_size = 1
 
     # Process in batches if batch_size > 1
@@ -116,18 +115,14 @@ def run_offline(model_name: str, language: str, split: str, dataset_path: str, b
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run the application in FastAPI or offline mode."
-    )
+    parser = argparse.ArgumentParser(description="Run the application in FastAPI or offline mode.")
     parser.add_argument(
         "--mode",
         choices=["fastapi", "offline"],
         required=True,
         help="Mode to run the application",
     )
-    parser.add_argument(
-        "--dataset_path", type=str, required=True, help="Path to the dataset"
-    )
+    parser.add_argument("--dataset_path", type=str, required=True, help="Path to the dataset")
     parser.add_argument(
         "--language",
         choices=["CS", "SK", "UK"],
