@@ -23,7 +23,6 @@ class GemmaQATModel(BaseModel):
     def load(self, model_id: str) -> None:
         self.unload()
         self.processor = AutoProcessor.from_pretrained(model_id, use_fast=True)
-        # self.model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16)
         self.model = Gemma3ForConditionalGeneration.from_pretrained(
             model_id,
             device_map="auto",
@@ -93,6 +92,6 @@ if __name__ == "__main__":
     image_url = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/bee.jpg"
     question = "Describe this image in detail."
 
-    gemma = GemmaModel()
+    gemma = GemmaQATModel()
     answer = gemma.generate((image_url, question))
     print("Generated Answer:", answer)
