@@ -6,8 +6,7 @@ from bert_score import score
 
 parser = argparse.ArgumentParser(description="Evaluate a metric (e.g., BERTScore) on a CSV file with target and predicted columns.")
 parser.add_argument("--input_csv",type=str, required=True, help="Path to the input CSV file containing 'target' and 'predicted' columns.",)
-parser.add_argument("--metric", type=str, required=True, help="The name of the metric to compute (e.g., 'bertscore').",)
-parser.add_argument("--summarize", type=str, default=False, required=False, help="",)
+parser.add_argument("--metric", default="bert_score", type=str, required=True, help="The name of the metric to compute (e.g., 'bert_score').",)
 
 def evaluate(
     metric_name: str,
@@ -50,7 +49,6 @@ def evaluate(
             f"Metric '{metric_name}' is not supported. Currently, only 'bertscore' is implemented."
         )
 
-
 if __name__ == "__main__":
     args = parser.parse_args()
 
@@ -69,6 +67,3 @@ if __name__ == "__main__":
     print(
         f"Evaluation complete. The updated CSV with the '{args.metric}' metric has been saved to '{output_csv}'."
     )
-
-    if args.summarize:
-        pass
