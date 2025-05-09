@@ -49,6 +49,8 @@ def run_offline(model_name: str, language: str, split: str, dataset_path: str, b
             df.loc[index, "predicted_answer_en"] = response_en
             df.loc[index, "model"] = model_name
             df.loc[index, "system_prompt"] = model.system_prompt
+
+            print("Correct:", df.loc[index, "answer"])
         except Exception as e:
             print(f"Error processing row {index}: {e}")
 
