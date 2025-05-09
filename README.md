@@ -14,6 +14,12 @@ For AYA and Gemma3 models you must accept the license and add the token to the e
 ```bash
 export HF_TOKEN=<your_huggingface_token>
 ```
+***
+When working on *Metacentrum* or if you want to have better control about where models from huggingface are downloaded.
+
+```bash
+export HF_HOME=<target_directory>
+```
 
 ### Test individual models
 
