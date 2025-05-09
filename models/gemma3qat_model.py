@@ -79,7 +79,7 @@ class GemmaQATModel(BaseModel):
 
         gen_tokens = gen_tokens[0][input_len:]
         decoded = self.processor.decode(gen_tokens, skip_special_tokens=True)
-        print('decoded:', decoded)
+        print('Model output:', decoded)
         return decoded
     
     def generate_batch(self, input_batch: list[tuple[str, str]]) -> list[str]:

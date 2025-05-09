@@ -68,7 +68,7 @@ class Phi4Model(BaseModel):
             skip_special_tokens=True,
             clean_up_tokenization_spaces=False
         )[0]
-        print('decoded:', decoded)
+        print('Model output:', decoded)
         return decoded
 
     def generate_batch(self, input_batch: list[tuple[str, str]]) -> list[str]:

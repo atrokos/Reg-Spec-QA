@@ -69,7 +69,7 @@ class AyaModel(BaseModel):
             gen_tokens[0][inputs.input_ids.shape[1] :], skip_special_tokens=True
         )
 
-        print('decoded:', decoded)
+        print('Model output:', decoded)
         return decoded
 
     def generate_batch(self, input_batch: list[tuple[str, str]]) -> list[str]:
