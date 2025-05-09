@@ -6,7 +6,7 @@ from bert_score import score
 
 parser = argparse.ArgumentParser(description="Evaluate a metric (e.g., BERTScore) on a CSV file with target and predicted columns.")
 parser.add_argument("--input_csv",type=str, required=True, help="Path to the input CSV file containing 'target' and 'predicted' columns.",)
-parser.add_argument("--metric", default="bert_score", type=str, required=True, help="The name of the metric to compute (e.g., 'bert_score').",)
+parser.add_argument("--metric", default="bert_score", type=str, help="The name of the metric to compute (e.g., 'bert_score').",)
 
 def evaluate(
     metric_name: str,
@@ -19,6 +19,7 @@ def evaluate(
     if metric_name.lower() == "bert_score":
         # Throw away those rows with ERROR in answer
         df_cleaned = df[~df['predicted_answer'].str.contains("ERROR", na=False)]
+        df_cleaned = df_cleaned.dropna(how="any") # predicted used to include some nans 
         split_type = df_cleaned.pop("split_type")
         df_cleaned.insert(0, "split_type", split_type)
         image_url = df_cleaned.pop("image_url")
