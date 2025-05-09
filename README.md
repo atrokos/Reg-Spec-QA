@@ -1,5 +1,10 @@
 # Reg-Spec-QA
 
+### Eval:
+![bert_scores](data/predictions/eval_results/Bert_Scores_first.svg)
+
+***
+
 ## Setup
 
 ```bash
