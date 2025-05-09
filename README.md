@@ -42,8 +42,9 @@ curl -X POST "http://localhost:8000/register" \
 ```
 Available models:
 - `gemma`
-- `phi4`
+- `gemmaQAT`
 - `aya`
+- `phi4` (*with difficulties*)
 
 #### Make prediction via API
 
