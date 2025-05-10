@@ -1,9 +1,8 @@
 # Reg-Spec-QA
 
 ### Eval:
-![bert_scores](data/predictions/eval_results/Bert_Scores_first.svg)
-
-***
+![bert_scores_cz](./pics/eval_bert_cz.svg)
+![bert_scores_en](./pics/eval_bert_en.svg)
 
 ## Setup
 
