@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import pandas as pd
 import Levenshtein
@@ -7,7 +8,7 @@ from bert_score import score
 
 parser = argparse.ArgumentParser(description="Evaluate a metric (e.g., BERTScore) on a CSV file with target and predicted columns.")
 parser.add_argument("--input_csv",type=str, required=True, help="Path to the input CSV file containing 'target' and 'predicted' columns.",)
-parser.add_argument("--metric", default="bert_score", type=str, choices=["bert_score", "edit_distance"], help="The name of the metric to compute (e.g., 'bert_score').",)
+parser.add_argument("--metric", default="bert_score", type=str, choices=["bert_score", "edit_distance", "counter"], help="The name of the metric to compute (e.g., 'bert_score').",)
 
 def evaluate_bert_score(
     df: pd.DataFrame,
@@ -88,6 +89,66 @@ def evaluate_edit_distance(
     
     return df_cleaned
 
+def analyze_answer_frequencies(
+    df: pd.DataFrame,
+):
+    # Očištění dat stejným způsobem jako u jiných metrik
+    df_cleaned = df[~df['predicted_answer'].str.contains("ERROR", na=False)]
+    df_cleaned = df_cleaned.dropna(how="any")
+    
+    # Analýza četnosti českých odpovědí
+    predictions_cz = df_cleaned["predicted_answer"].tolist()
+    freq_cz = {}
+    for pred in predictions_cz:
+        pred = str(pred).strip()
+        if pred in freq_cz:
+            freq_cz[pred] += 1
+        else:
+            freq_cz[pred] = 1
+    
+    # Řazení podle četnosti (sestupně)
+    sorted_freq_cz = sorted(freq_cz.items(), key=lambda x: x[1], reverse=True)
+    
+    # Analýza četnosti anglických odpovědí
+    predictions_en = df_cleaned["predicted_answer_en"].tolist()
+    freq_en = {}
+    for pred in predictions_en:
+        pred = str(pred).strip()
+        if pred in freq_en:
+            freq_en[pred] += 1
+        else:
+            freq_en[pred] = 1
+    
+    # Řazení podle četnosti (sestupně)
+    sorted_freq_en = sorted(freq_en.items(), key=lambda x: x[1], reverse=True)
+    
+    return sorted_freq_cz, sorted_freq_en
+
+def save_frequency_analysis_to_files(freq_cz, freq_en, input_csv_path):
+    # Vytvoření adresáře pro výstupy
+    output_path = os.path.join(os.path.dirname(input_csv_path), "eval_results")
+    os.makedirs(output_path, exist_ok=True)
+    
+    # Získání základního jména souboru bez přípony
+    basename = os.path.basename(input_csv_path).split('.')[0]
+    
+    # Soubor pro české odpovědi
+    output_txt_cz = os.path.join(output_path, f"{basename}_answer_frequencies_cz.txt")
+    with open(output_txt_cz, 'w', encoding='utf-8') as f:
+        f.write("Odpověď\tPočet\n")
+        f.write("-" * 50 + "\n")
+        for answer, count in freq_cz:
+            f.write(f"{answer}\t{count}\n")
+    
+    output_txt_en = os.path.join(output_path, f"{basename}_answer_frequencies_en.txt")
+    with open(output_txt_en, 'w', encoding='utf-8') as f:
+        f.write("Answer\tCount\n")
+        f.write("-" * 50 + "\n")
+        for answer, count in freq_en:
+            f.write(f"{answer}\t{count}\n")
+            
+    return output_txt_cz, output_txt_en
+
 def evaluate(
     metric_name: str,
     df: pd.DataFrame,
@@ -99,6 +160,12 @@ def evaluate(
         return evaluate_bert_score(df, target_column=target_column, lang=lang)
     elif metric_name.lower() == "edit_distance":
         return evaluate_edit_distance(df, target_column=target_column)
+    elif metric_name.lower() == "counter":
+        # Pro counter nevracíme DataFrame, ale jen provedeme analýzu
+        freq_cz, freq_en = analyze_answer_frequencies(df)
+        output_txt_cz, output_txt_en = save_frequency_analysis_to_files(freq_cz, freq_en, args.input_csv)
+        print(f"Frequency analysis results saved to {output_txt_cz} and {output_txt_en}.")
+        sys.exit(0)
     else:
         raise ValueError(
             f"Metric '{metric_name}' is not supported. Currently, only 'bertscore' is implemented."
